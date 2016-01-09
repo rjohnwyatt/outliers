@@ -1,0 +1,33 @@
+pro derbyalt_ten_skaters, factor, num
+; where factor is the number of std deviations to define which points to toss, and num is the number of skaters on the team I'm running
+
+keep_sd=dblarr(num)
+keep_ave=dblarr(num)
+keep_med=dblarr(num)
+
+for i=0,num-1 do begin
+
+	p=i+1
+	readcol, '2012/as'+strcompress(p, /remove_all)+'.txt', v1,v2,v3,v4,v5,v6,v7,v8,v9,v10, format='f,f,f,f,f,f,f,f,f'
+	c=dblarr(17)	; 17 for the number of rankers this year
+
+ 	for r=0,16 do begin
+  		c(r) = v1(r) + v2(r) + v3(r) + v4(r) + v5(r) + v6(r) + v7(r) + v8(r) + v9(r) + v10(r)
+ 	endfor
+
+	c_high=mean(c) + factor*stddev(c)
+	c_low=mean(c) - factor*stddev(c)
+	c_w=where(c lt c_high AND c gt c_low)
+
+	keep_sd(i)=mean(c(c_w))
+	keep_ave(i)=mean(c)
+	keep_med(i)=median(c, /even)
+
+	print, 'AS'+strcompress(p, /remove_all)+' ', stddev(c), ' Votes discarded: ', n_elements(where(c gt c_high OR c lt c_low)), ' , Average of remaining votes: ', mean(c(c_w)), ' , Average of all votes: ', mean(c), ', (Median =)', median(c, /even)
+
+endfor
+
+print, 'Team averages. Average of remaining votes: ', mean(keep_sd), ' Average of all votes: ', mean(keep_ave), ' Average of median votes: ', mean(keep_med)
+
+stop
+end
